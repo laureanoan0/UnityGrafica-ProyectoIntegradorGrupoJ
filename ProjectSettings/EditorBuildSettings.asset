@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/ProyectoIntegrador/Scenes/PI_01.unity
+    guid: 23ea3345bdd97d047834ff36496be8bc
+  - enabled: 1
+    path: Assets/ProyectoIntegrador/Scenes/PI_02.unity
+    guid: ed0f77b82796d1b4f91c594f97dd66c6
+  - enabled: 1
+    path: Assets/ProyectoIntegrador/Scenes/PI_03.unity
+    guid: 77502ad1ad1e1184ea0f06d4629fdcc8
+  - enabled: 1
+    path: Assets/ProyectoIntegrador/Scenes/PI_04.unity
+    guid: 35b8e8509ee659142ac8da0476ab7db3
+  - enabled: 1
+    path: Assets/ProyectoIntegrador/Scenes/PI_05.unity
+    guid: 94054c384632c284689e343f670ea2ad
+  - enabled: 1
+    path: Assets/ProyectoIntegrador/Scenes/PI_06.unity
+    guid: 87eb01bc4611f0b4699cf13c14ebc636
+  - enabled: 1
+    path: Assets/ProyectoIntegrador/Scenes/PI_07.unity
+    guid: 4adbff8a31f742948af375c5e55ebe8c
+  - enabled: 1
+    path: Assets/ProyectoIntegrador/Scenes/PI_08.unity
+    guid: 4604c11a2482b074291459e05164101c
+  m_configObjects: {}
