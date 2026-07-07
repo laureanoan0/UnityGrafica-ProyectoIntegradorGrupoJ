@@ -1,18 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
+
+[RequireComponent(typeof(Camera))]
 public class PostProcess : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private Shader shader;
+    private Material material;
+
+    private void OnEnable()
     {
-        
+        GetComponent<Camera>().depthTextureMode |= DepthTextureMode.Depth;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Awake()
     {
-        
+        material = new Material(shader);
+    }
+
+    private void OnRenderImage(RenderTexture source, RenderTexture destination)
+    {
+        Graphics.Blit(source, destination, material);
     }
 }
