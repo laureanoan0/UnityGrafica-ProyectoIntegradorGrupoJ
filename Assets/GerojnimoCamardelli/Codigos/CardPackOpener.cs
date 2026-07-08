@@ -4,9 +4,18 @@ using UnityEngine;
 
 /// <summary>
 /// Version 3D del abridor de sobre: Transform normal (no RectTransform), SpriteRenderer para
-/// el fade de alpha (no CanvasGroup), y OnMouseDown para detectar clicks (no IPointerClickHandler).
+/// el fade de alpha del sobre (no CanvasGroup), y OnMouseDown para detectar clicks (no IPointerClickHandler).
 /// Pensado para objetos con SpriteRenderer + Collider (o Collider2D) en un espacio 3D visto por camara.
-/// Version simple a proposito: prioriza que funcione sin crashear por sobre ser la solucion optima.
+///
+/// CAMBIO CLAVE vs la version anterior: las cartas ya NO se instancian todas juntas y se apilan
+/// con offsets de Z. Ahora se instancia UNA sola carta por vez (la que esta "de frente"), y recien
+/// cuando esa termina su animacion de salida se instancia la siguiente.
+///
+/// Motivo: si las cartas usan un material con Stencil (tipico para efectos holo/mascara/recorte),
+/// tener varias cartas superpuestas en pantalla al mismo tiempo hace que el Stencil Buffer se
+/// pise entre ellas (el resultado depende de que objeto se dibujo primero, algo que un SpriteRenderer
+/// no te deja controlar con precision). Con una sola carta activa en render por vez, ese problema
+/// desaparece por completo.
 /// </summary>
 public class CardPackOpener : MonoBehaviour
 {
@@ -18,30 +27,27 @@ public class CardPackOpener : MonoBehaviour
     [Header("Cartas")]
     [SerializeField] private GameObject[] cardPrefabs; // un prefab COMPLETO por cada diseño de carta (frente + fondo + objeto 3D ya armados)
     [SerializeField] private Transform cardPileParent;
-    [SerializeField] private Transform pileRestPoint;
+    [SerializeField] private Transform pileRestPoint; // punto donde "descansa" la carta frontal
     [SerializeField] private Transform sideExitPoint;
     [SerializeField] private int cardCount = 5;
 
     [Header("Tiempos (segundos)")]
     [SerializeField] private float tearDuration = 0.35f;
     [SerializeField] private float packExitDuration = 0.5f;
-    [SerializeField] private float pileRiseDuration = 0.5f;
+    [SerializeField] private float cardEnterDuration = 0.5f;
     [SerializeField] private float cardSwipeDuration = 0.3f;
 
     [Header("Distancias de animacion (ajustar segun la escala de tu escena)")]
     [SerializeField] private Vector3 tearOffset = new Vector3(0f, 3f, 0f);       // cuanto sube PackTop al romperse
     [SerializeField] private Vector3 packExitOffset = new Vector3(0f, -20f, 0f); // cuanto baja el sobre al salir de escena
-    [SerializeField] private float cardSpawnSpread = 0.4f; // que tan separadas nacen las cartas del sobre (antes de juntarse en el pilon)
 
-    [Header("Orden de dibujado (evita que el sobre tape a las cartas)")]
-    [SerializeField] private int packSortingOrder = -10;    // el sobre siempre atras
-    [SerializeField] private int cardBaseSortingOrder = 100; // las cartas siempre adelante del sobre
+    [Header("Orden de dibujado del sobre (evita que el sobre tape a las cartas)")]
+    [SerializeField] private int packSortingOrder = -10; // el sobre siempre atras
 
     private void Awake()
     {
         // Forzamos el orden de dibujado del sobre para que quede siempre detras de las cartas,
-        // sin importar la distancia real a camara en cada frame de la animacion (eso es lo que
-        // causaba que la tapa se viera por delante de las cartas al cruzarse en el espacio 3D).
+        // sin importar la distancia real a camara en cada frame de la animacion.
         ForceSortingOrder(packTop, packSortingOrder);
         ForceSortingOrder(packBottom, packSortingOrder);
     }
@@ -56,8 +62,9 @@ public class CardPackOpener : MonoBehaviour
     private enum State { WaitingPackClick, Opening, WaitingCardClick, RevealingNext, Done }
     private State currentState = State.WaitingPackClick;
 
-    private readonly List<Transform> spawnedCards = new List<Transform>();
-    private int frontCardIndex = 0;
+    private List<GameObject> shuffledDeck;
+    private int nextCardIndex = 0;
+    private Transform currentCard;
 
     // Este mismo GameObject necesita un Collider (o Collider2D) para que esto se dispare.
     private void OnMouseDown()
@@ -80,18 +87,18 @@ public class CardPackOpener : MonoBehaviour
     {
         currentState = State.Opening;
 
-        // Las tres animaciones arrancan juntas en el mismo instante:
-        // la tapa se rompe, el cuerpo del sobre baja, y las cartas ya empiezan a asomar.
-        // Antes esperabamos que terminara cada una para recien arrancar la siguiente (por eso
-        // las cartas parecian salir "de la nada" una vez que el sobre ya habia desaparecido).
+        shuffledDeck = BuildShuffledPrefabList();
+        nextCardIndex = 0;
+
+        // Las tres animaciones arrancan juntas en el mismo instante: la tapa se rompe, el cuerpo
+        // del sobre baja, y la primera carta ya empieza a asomar.
         Coroutine tearRoutine = StartCoroutine(TearTopRoutine());
         Coroutine exitRoutine = StartCoroutine(PackExitRoutine());
-        Coroutine riseRoutine = StartCoroutine(SpawnAndRiseCards());
+        Coroutine spawnRoutine = StartCoroutine(SpawnNextCardRoutine());
 
-        // Esperamos a que las tres hayan terminado antes de habilitar el click sobre la carta.
         yield return tearRoutine;
         yield return exitRoutine;
-        yield return riseRoutine;
+        yield return spawnRoutine;
 
         currentState = State.WaitingCardClick;
     }
@@ -139,81 +146,54 @@ public class CardPackOpener : MonoBehaviour
         packContainer.gameObject.SetActive(false);
     }
 
-    private IEnumerator SpawnAndRiseCards()
+    // ---------------- PASO 2: instanciar y animar UNA carta por vez ----------------
+
+    // Instancia la siguiente carta del mazo mezclado y la anima desde el sobre hasta pileRestPoint.
+    // Deja el collider deshabilitado hasta que termina de llegar, para que no se pueda clickear
+    // a mitad de camino.
+    private IEnumerator SpawnNextCardRoutine()
     {
-        Vector3 spawnPos = cardPileParent.position;
-
-        // Armamos un orden mezclado de que prefab le toca a cada posicion, para que las 5
-        // cartas del sobre no salgan repetidas (mientras tengas 5 o mas prefabs cargados).
-        List<GameObject> shuffledPrefabs = BuildShuffledPrefabList();
-
-        for (int i = 0; i < cardCount; i++)
+        if (nextCardIndex >= cardCount || shuffledDeck.Count == 0)
         {
-            GameObject prefabToUse = shuffledPrefabs.Count > 0 ? shuffledPrefabs[i % shuffledPrefabs.Count] : null;
-            if (prefabToUse == null)
-            {
-                Debug.LogWarning("No hay prefabs de carta asignados en Card Prefabs.");
-                continue;
-            }
-
-            GameObject cardGO = Instantiate(prefabToUse, cardPileParent);
-            cardGO.SetActive(true);
-
-            Transform ct = cardGO.transform;
-            ct.position = spawnPos + new Vector3(Random.Range(-cardSpawnSpread, cardSpawnSpread), Random.Range(-cardSpawnSpread, cardSpawnSpread), 0f);
-            ct.eulerAngles = new Vector3(0, 0, Random.Range(-3f, 3f));
-
-            // Sorting order alto y decreciente por indice: la carta 0 (la que se ve primero)
-            // queda con el numero mas alto, asegurando que este por delante de TODO el sobre
-            // y tambien por delante de las demas cartas del mazo.
-            SpriteRenderer cardRenderer = cardGO.GetComponent<SpriteRenderer>();
-            if (cardRenderer != null) cardRenderer.sortingOrder = cardBaseSortingOrder + (cardCount - i);
-
-            // Enganchamos el click de esta carta puntual al metodo que pasa a la siguiente.
-            CardClickRelay relay = cardGO.AddComponent<CardClickRelay>();
-            relay.onClicked = OnFrontCardClicked;
-
-            spawnedCards.Add(ct);
+            currentState = State.Done;
+            yield break;
         }
 
-        // En UI usabamos el orden de la jerarquia para decidir que carta se ve "encima".
-        // En 3D usamos el eje Z: la carta 0 (primera en revelarse) queda mas cerca de la camara.
-        SetCardZOrder();
-
-        SetCardInteractable(spawnedCards[0], true);
-        for (int i = 1; i < spawnedCards.Count; i++)
-            SetCardInteractable(spawnedCards[i], false);
-
-        // Cada carta tiene su propio destino: mismo X/Y que PileRestPoint, pero con
-        // un pequenio escalonado en Z (basado en su indice) para que se sigan viendo apiladas
-        // incluso una vez que llegaron a destino.
-        Vector3 targetBase = pileRestPoint.position;
-        Vector3[] startPositions = new Vector3[spawnedCards.Count];
-        Vector3[] targetPositions = new Vector3[spawnedCards.Count];
-        for (int i = 0; i < spawnedCards.Count; i++)
+        GameObject prefabToUse = shuffledDeck[nextCardIndex % shuffledDeck.Count];
+        if (prefabToUse == null)
         {
-            startPositions[i] = spawnedCards[i].position;
-            targetPositions[i] = new Vector3(targetBase.x, targetBase.y, targetBase.z + i * 0.01f);
+            Debug.LogWarning("No hay prefab de carta asignado en esta posicion de Card Prefabs.");
+            nextCardIndex++;
+            yield break;
         }
+
+        GameObject cardGO = Instantiate(prefabToUse, cardPileParent.position, Quaternion.identity, cardPileParent);
+        cardGO.SetActive(true);
+        currentCard = cardGO.transform;
+        nextCardIndex++;
+
+        // Enganchamos el click de esta carta puntual al metodo que pasa a la siguiente.
+        CardClickRelay relay = cardGO.AddComponent<CardClickRelay>();
+        relay.onClicked = OnFrontCardClicked;
+
+        // No interactuable hasta que termine de llegar a destino.
+        SetCardInteractable(currentCard, false);
+
+        Vector3 startPos = currentCard.position;
+        Vector3 endPos = pileRestPoint.position;
+        float startRot = currentCard.eulerAngles.z;
 
         float t = 0f;
-        while (t < pileRiseDuration)
+        while (t < cardEnterDuration)
         {
             t += Time.deltaTime;
-            float p = Mathf.Clamp01(t / pileRiseDuration);
-            for (int i = 0; i < spawnedCards.Count; i++)
-            {
-                // Ahora SI viaja en X, Y y Z: si PileRestPoint esta mas cerca de la camara
-                // que el punto de spawn, la carta se va a acercar de verdad, no solo "flotar".
-                spawnedCards[i].position = Vector3.Lerp(startPositions[i], targetPositions[i], p);
-            }
+            float p = Mathf.Clamp01(t / cardEnterDuration);
+            currentCard.position = Vector3.Lerp(startPos, endPos, p);
             yield return null;
         }
+        currentCard.position = endPos;
 
-        for (int i = 0; i < spawnedCards.Count; i++)
-            spawnedCards[i].position = targetPositions[i];
-
-        frontCardIndex = 0;
+        SetCardInteractable(currentCard, true);
     }
 
     // Devuelve una copia mezclada de cardPrefabs (Fisher-Yates), para no repetir diseños
@@ -231,31 +211,19 @@ public class CardPackOpener : MonoBehaviour
         return deck;
     }
 
-    // Acomoda el eje Z de cada carta para que la carta "de adelante" quede mas cerca de la camara.
-    // Asume una camara mirando hacia +Z. Si tu camara mira para el otro lado, invertí el signo.
-    private void SetCardZOrder()
-    {
-        for (int i = 0; i < spawnedCards.Count; i++)
-        {
-            Vector3 pos = spawnedCards[i].position;
-            pos.z = i * 0.01f;
-            spawnedCards[i].position = pos;
-        }
-    }
-
     // ---------------- PASO 3: pasar cartas una por una ----------------
 
     private IEnumerator RevealNextCardRoutine()
     {
         currentState = State.RevealingNext;
 
-        Transform current = spawnedCards[frontCardIndex];
-        SetCardInteractable(current, false);
+        Transform outgoing = currentCard;
+        SetCardInteractable(outgoing, false);
 
-        SpriteRenderer renderer = current.GetComponent<SpriteRenderer>();
+        SpriteRenderer renderer = outgoing.GetComponent<SpriteRenderer>();
         Color startColor = renderer != null ? renderer.color : Color.white;
 
-        Vector3 startPos = current.position;
+        Vector3 startPos = outgoing.position;
         Vector3 endPos = sideExitPoint.position;
 
         float t = 0f;
@@ -263,8 +231,8 @@ public class CardPackOpener : MonoBehaviour
         {
             t += Time.deltaTime;
             float p = Mathf.Clamp01(t / cardSwipeDuration);
-            current.position = Vector3.Lerp(startPos, endPos, p);
-            current.eulerAngles = new Vector3(0, 0, Mathf.Lerp(0f, -20f, p));
+            outgoing.position = Vector3.Lerp(startPos, endPos, p);
+            outgoing.eulerAngles = new Vector3(0, 0, Mathf.Lerp(0f, -20f, p));
             if (renderer != null)
             {
                 Color c = startColor;
@@ -273,14 +241,16 @@ public class CardPackOpener : MonoBehaviour
             }
             yield return null;
         }
-        current.gameObject.SetActive(false);
 
-        frontCardIndex++;
+        // A diferencia de la version anterior (SetActive(false) para siempre), ahora destruimos
+        // la carta saliente: como se instancia una nueva por cada carta del sobre, dejarlas
+        // desactivadas para siempre iba acumulando objetos muertos en memoria sobre en sobre.
+        Destroy(outgoing.gameObject);
+        currentCard = null;
 
-        if (frontCardIndex < spawnedCards.Count)
+        if (nextCardIndex < cardCount)
         {
-            Transform next = spawnedCards[frontCardIndex];
-            SetCardInteractable(next, true);
+            yield return StartCoroutine(SpawnNextCardRoutine());
             currentState = State.WaitingCardClick;
         }
         else
@@ -298,5 +268,33 @@ public class CardPackOpener : MonoBehaviour
 
         Collider2D col2D = card.GetComponent<Collider2D>();
         if (col2D != null) col2D.enabled = interactable;
+    }
+
+    // ---------------- Utilidad: reabrir el sobre (util para probar en el editor / demo) ----------------
+
+    public void ResetPack()
+    {
+        StopAllCoroutines();
+
+        if (currentCard != null)
+        {
+            Destroy(currentCard.gameObject);
+            currentCard = null;
+        }
+
+        nextCardIndex = 0;
+        currentState = State.WaitingPackClick;
+
+        packContainer.gameObject.SetActive(true);
+        packContainer.position -= packExitOffset; // ojo: solo valido si no se movio nada mas mientras tanto
+
+        SpriteRenderer topRenderer = packTop.GetComponent<SpriteRenderer>();
+        if (topRenderer != null)
+        {
+            Color c = topRenderer.color;
+            c.a = 1f;
+            topRenderer.color = c;
+        }
+        packTop.eulerAngles = Vector3.zero;
     }
 }
