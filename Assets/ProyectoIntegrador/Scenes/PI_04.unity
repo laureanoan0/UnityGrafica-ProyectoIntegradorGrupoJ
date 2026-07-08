@@ -297,15 +297,18 @@ MonoBehaviour:
   packBottom: {fileID: 967139590}
   packContainer: {fileID: 702900545}
   cardPrefabs:
-  - {fileID: 1379305409004934, guid: d061b4ea3caa97f44bf879f452b691ea, type: 3}
-  - {fileID: 1379305409004934, guid: 08c012af59b88f149a968351a81ad6c7, type: 3}
-  - {fileID: 1379305409004934, guid: 08c012af59b88f149a968351a81ad6c7, type: 3}
-  - {fileID: 1379305409004934, guid: 08c012af59b88f149a968351a81ad6c7, type: 3}
-  - {fileID: 1379305409004934, guid: 08c012af59b88f149a968351a81ad6c7, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  rareChance: 0.2
   cardPileParent: {fileID: 2040757033}
   pileRestPoint: {fileID: 1508242431}
   sideExitPoint: {fileID: 34271965}
-  cardCount: 5
+  cardCount: 7
   tearDuration: 0.3
   packExitDuration: 1.2
   cardEnterDuration: 0.3
@@ -363,8 +366,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.0003004, y: 3.7519736, z: 0.08440834}
-  m_Center: {x: 2.9017596, y: 0.6012757, z: -0.0008485615}
+  m_Size: {x: 3.0003004, y: 4.5556083, z: 0.08440834}
+  m_Center: {x: 2.9017596, y: 1.003093, z: -0.0008485615}
 --- !u!1 &1508242430
 GameObject:
   m_ObjectHideFlags: 0
