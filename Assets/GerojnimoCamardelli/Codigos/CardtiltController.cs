@@ -1,50 +1,50 @@
 using UnityEngine;
 
 /// <summary>
-/// Rota la carta con las flechas/WASD, como si la estuvieras inclinando en la mano, y mueve en
-/// conjunto todos los elementos que arman el efecto "diorama": el personaje 3D de adentro, el
-/// fondo, y el plano de stencil que recorta al personaje para que solo se vea dentro del marco
-/// de la carta.
+/// Rotates the card with arrow keys/WASD, as if tilting it in your hand, and moves all the
+/// elements that make up the "diorama" effect together: the 3D character inside, the
+/// background, and the stencil plane that clips the character so it only shows within the
+/// card frame.
 ///
-/// Este script NO toca nada del shader holografico (_HoloStrength, _HoloArea, _IsGold,
-/// _HoloMovement, el panner con Time, etc.) - eso queda exactamente como estaba antes, animado
-/// solo por Time dentro del shader, sin depender de este input.
+/// This script does NOT touch anything in the holographic shader (_HoloStrength, _HoloArea,
+/// _IsGold, _HoloMovement, the Time-driven panner, etc.) - that stays exactly as it was,
+/// animated only by Time inside the shader, independent of this input.
 /// </summary>
 public class CardTiltController : MonoBehaviour
 {
-    [Header("Carta (rota con el input)")]
-    [Tooltip("Transform que rota al presionar las flechas/WASD. Si lo dejas vacio, usa este mismo GameObject.")]
+    [Header("Card (rotates with input)")]
+    [Tooltip("Transform that rotates when pressing arrows/WASD. If left empty, uses this same GameObject.")]
     [SerializeField] private Transform cardTransform;
 
-    [Tooltip("Angulo maximo de inclinacion en grados, con la tecla a fondo.")]
+    [Tooltip("Maximum tilt angle in degrees, with the key fully pressed.")]
     [SerializeField] private float maxTiltAngle = 15f;
 
-    [Header("Plano de Stencil")]
-    [Tooltip("Informativo unicamente: el stencil tiene que ser HIJO de Card Transform en la jerarquia. Al ser hijo, hereda la rotacion automaticamente por Unity - este script no le escribe nada.")]
+    [Header("Stencil Plane")]
+    [Tooltip("Informational only: the stencil must be a CHILD of Card Transform in the hierarchy. Being a child, it inherits rotation automatically from Unity - this script does not write to it.")]
     [SerializeField] private Transform stencilTransform;
 
-    [Header("Personaje 3D (parallax)")]
-    [Tooltip("Modelo 3D que se ve 'adentro' de la carta.")]
+    [Header("3D Character (parallax)")]
+    [Tooltip("3D model shown 'inside' the card.")]
     [SerializeField] private Transform characterTransform;
 
-    [Tooltip("Cuanto rota el personaje respecto a la carta (1 = igual que la carta, mas alto = exagera la sensacion de profundidad).")]
+    [Tooltip("How much the character rotates relative to the card (1 = same as the card, higher = exaggerates the sense of depth).")]
     [SerializeField] private float characterRotationMultiplier = 1.5f;
 
-    [Tooltip("Cuanto se desplaza el personaje en su plano local al inclinar (simula paralaje/volumen).")]
+    [Tooltip("How much the character shifts on its own plane when tilting (simulates parallax/volume).")]
     [SerializeField] private float characterParallaxStrength = 0.1f;
 
-    [Header("Fondo (parallax)")]
-    [Tooltip("Fondo que se ve detras del personaje, dentro de la carta.")]
+    [Header("Background (parallax)")]
+    [Tooltip("Background shown behind the character, inside the card.")]
     [SerializeField] private Transform backgroundTransform;
 
-    [Tooltip("Cuanto se desplaza el fondo al inclinar. Un valor menor al del personaje da sensacion de que esta mas lejos.")]
+    [Tooltip("How much the background shifts when tilting. A smaller value than the character's gives the sense that it's farther away.")]
     [SerializeField] private float backgroundParallaxStrength = 0.03f;
 
-    [Header("Suavizado")]
-    [Tooltip("Velocidad de suavizado, tanto al presionar como al soltar la tecla.")]
+    [Header("Smoothing")]
+    [Tooltip("Smoothing speed, both when pressing and releasing the key.")]
     [SerializeField] private float tiltSpeed = 4f;
 
-    private Vector2 currentTilt; // -1..1, input suavizado, compartido por todos los elementos
+    private Vector2 currentTilt; // -1..1, smoothed input, shared by all elements
 
     private Quaternion cardBaseRotation;
     private Quaternion characterBaseRotation;
@@ -56,10 +56,10 @@ public class CardTiltController : MonoBehaviour
         if (cardTransform == null) cardTransform = transform;
         cardBaseRotation = cardTransform.rotation;
 
-        // El stencil es hijo de la carta: NO se le aplica rotacion desde este script. Al ser
-        // child, ya hereda la rotacion de cardTransform automaticamente por jerarquia de Unity
-        // (asi es como Unity compone transforms padre-hijo). Si el script tambien le escribiera
-        // rotacion encima, quedaria rotado el doble - que es exactamente el bug que tenias.
+        // The stencil is a child of the card: no rotation is applied to it from this script.
+        // Being a child, it already inherits cardTransform's rotation automatically through
+        // Unity's parent-child hierarchy. If the script also wrote rotation on top of that,
+        // it would end up rotated twice.
 
         if (characterTransform != null)
         {
@@ -77,8 +77,8 @@ public class CardTiltController : MonoBehaviour
     {
         Vector2 targetTilt = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
 
-        // Suaviza tanto la subida (tecla presionada) como la bajada (tecla soltada), asi todo
-        // el conjunto se mueve parejo sin saltos bruscos.
+        // Smooths both the rise (key pressed) and the fall (key released), so the whole set
+        // moves evenly without sudden jumps.
         currentTilt = Vector2.Lerp(currentTilt, targetTilt, Time.deltaTime * tiltSpeed);
 
         ApplyCardTilt(currentTilt);
@@ -86,20 +86,20 @@ public class CardTiltController : MonoBehaviour
         ApplyBackgroundParallax(currentTilt);
     }
 
-    // Rota la carta principal (el marco/plano con el shader holografico). Usa rotacion MUNDIAL
-    // (no local) para que el mismo input produzca el mismo giro visual sin importar la
-    // orientacion de origen del objeto. El stencil, al ser hijo de este transform, hereda esta
-    // rotacion automaticamente por jerarquia - no necesita codigo propio.
+    // Rotates the main card (the frame/plane with the holographic shader). Uses WORLD rotation
+    // (not local) so the same input produces the same visual rotation regardless of the
+    // object's original orientation. The stencil, being a child of this transform, inherits
+    // this rotation automatically through the hierarchy - it needs no code of its own.
     private void ApplyCardTilt(Vector2 tilt)
     {
         Quaternion tiltDelta = Quaternion.Euler(-tilt.y * maxTiltAngle, tilt.x * maxTiltAngle, 0f);
         cardTransform.rotation = tiltDelta * cardBaseRotation;
     }
 
-    // El personaje rota un poco mas que la carta (characterRotationMultiplier > 1) y ademas se
-    // desplaza levemente en su propio plano, para dar sensacion de volumen real en vez de
-    // sentirse pegado al marco de la carta. Rotacion MUNDIAL, mismo criterio que la carta: asi
-    // gira en la misma direccion percibida sin importar como este orientado el modelo de origen.
+    // The character rotates a bit more than the card (characterRotationMultiplier > 1) and
+    // also shifts slightly on its own plane, to give a sense of real volume instead of feeling
+    // stuck to the card frame. World rotation, same criteria as the card: so it turns in the
+    // same perceived direction regardless of the source model's orientation.
     private void ApplyCharacterParallax(Vector2 tilt)
     {
         if (characterTransform == null) return;
@@ -114,8 +114,8 @@ public class CardTiltController : MonoBehaviour
         characterTransform.localPosition = characterBasePosition + offset;
     }
 
-    // El fondo se mueve mas lento que el personaje (backgroundParallaxStrength menor), lo que
-    // simula que esta mas lejos, adentro de la carta.
+    // The background moves slower than the character (backgroundParallaxStrength is smaller),
+    // which simulates it being farther away, inside the card.
     private void ApplyBackgroundParallax(Vector2 tilt)
     {
         if (backgroundTransform == null) return;

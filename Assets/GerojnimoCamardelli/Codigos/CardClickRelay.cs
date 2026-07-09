@@ -2,9 +2,9 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Version 3D. En vez de IPointerClickHandler (que necesita EventSystem + Canvas/Physics Raycaster),
-/// usamos OnMouseDown: funciona apenas el objeto tenga un Collider (o Collider2D) encima,
-/// sin configuracion extra en la escena.
+/// 3D version. Instead of IPointerClickHandler (which needs an EventSystem +
+/// Canvas/Physics Raycaster), we use OnMouseDown: it works as soon as the object has a
+/// Collider (or Collider2D) on it, with no extra scene setup.
 /// </summary>
 public class CardClickRelay : MonoBehaviour
 {

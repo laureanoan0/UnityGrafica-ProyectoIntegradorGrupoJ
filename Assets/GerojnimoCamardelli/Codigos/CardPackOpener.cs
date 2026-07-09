@@ -3,55 +3,56 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Version 3D del abridor de sobre: Transform normal (no RectTransform), SpriteRenderer para
-/// el fade de alpha del sobre (no CanvasGroup), y OnMouseDown para detectar clicks (no IPointerClickHandler).
-/// Pensado para objetos con SpriteRenderer + Collider (o Collider2D) en un espacio 3D visto por camara.
+/// 3D version of the pack opener: regular Transform (not RectTransform), SpriteRenderer for
+/// the pack's alpha fade (not CanvasGroup), and OnMouseDown to detect clicks (not
+/// IPointerClickHandler). Meant for objects with a SpriteRenderer + Collider (or Collider2D)
+/// in a 3D space viewed by a camera.
 ///
-/// Una sola carta se instancia y renderiza por vez (evita conflictos de Stencil Buffer entre
-/// materiales holograficos superpuestos). La rareza (holo si/no) y el area del holo (bordes/completa)
-/// se deciden por codigo via CardHoloRarity + MaterialPropertyBlock, no por que prefab se elige:
-/// todos los diseños de carta comparten un unico pool (cardPrefabs), y cada slot del sobre tira
-/// su propio roll de rareza y de area, independiente del diseño que le toco.
+/// Only one card is instantiated and rendered at a time (avoids Stencil Buffer conflicts
+/// between overlapping holographic materials). Rarity (holo on/off) and holo area
+/// (border/full) are decided in code via CardHoloRarity + MaterialPropertyBlock, not by which
+/// prefab is chosen: all card designs share a single pool (cardPrefabs), and each pack slot
+/// rolls its own rarity and area independently of the design it got.
 /// </summary>
 public class CardPackOpener : MonoBehaviour
 {
-    [Header("Referencias del sobre")]
-    [SerializeField] private Transform packTop;      // parte de arriba, la que se "rompe"
-    [SerializeField] private Transform packBottom;    // parte de abajo
-    [SerializeField] private Transform packContainer; // padre de PackTop y PackBottom (puede ser este mismo objeto)
+    [Header("Pack references")]
+    [SerializeField] private Transform packTop;      // top part, the one that "tears"
+    [SerializeField] private Transform packBottom;    // bottom part
+    [SerializeField] private Transform packContainer; // parent of PackTop and PackBottom (can be this same object)
 
-    [Header("Cartas")]
-    [SerializeField] private GameObject[] cardPrefabs; // un prefab COMPLETO por cada diseño de carta (la rareza ya NO depende del prefab)
+    [Header("Cards")]
+    [SerializeField] private GameObject[] cardPrefabs; // one COMPLETE prefab per card design (rarity no longer depends on the prefab)
     [Range(0f, 1f)]
-    [SerializeField] private float rareChance = 0.2f; // probabilidad de que UN slot puntual del sobre salga holografico/rara
+    [SerializeField] private float rareChance = 0.2f; // probability that ONE specific pack slot turns out holo/rare
     [Range(0f, 1f)]
-    [SerializeField] private float fullHoloChance = 0.3f; // de las cartas que salen raras, cuantas usan la mascara "completa" en vez de "bordes"
+    [SerializeField] private float fullHoloChance = 0.3f; // of the cards that turn out rare, how many use the "full" mask instead of "border"
     [Range(0f, 1f)]
-    [SerializeField] private float goldChance = 0.25f; // de las cartas que salen raras, cuantas usan el ramp dorado en vez del arcoiris
+    [SerializeField] private float goldChance = 0.25f; // of the cards that turn out rare, how many use the gold ramp instead of rainbow
     [Range(0f, 1f)]
-    [SerializeField] private float staticChance = 0.2f; // de las cartas que salen raras, cuantas quedan SIN movimiento (holo estatico)
+    [SerializeField] private float staticChance = 0.2f; // of the cards that turn out rare, how many end up WITHOUT movement (static holo)
     [SerializeField] private Transform cardPileParent;
-    [SerializeField] private Transform pileRestPoint; // punto donde "descansa" la carta frontal
+    [SerializeField] private Transform pileRestPoint; // point where the front card "rests"
     [SerializeField] private Transform sideExitPoint;
     [SerializeField] private int cardCount = 5;
 
-    [Header("Tiempos (segundos)")]
+    [Header("Timings (seconds)")]
     [SerializeField] private float tearDuration = 0.35f;
     [SerializeField] private float packExitDuration = 0.5f;
     [SerializeField] private float cardEnterDuration = 0.5f;
     [SerializeField] private float cardSwipeDuration = 0.3f;
 
-    [Header("Distancias de animacion (ajustar segun la escala de tu escena)")]
-    [SerializeField] private Vector3 tearOffset = new Vector3(0f, 3f, 0f);       // cuanto sube PackTop al romperse
-    [SerializeField] private Vector3 packExitOffset = new Vector3(0f, -20f, 0f); // cuanto baja el sobre al salir de escena
+    [Header("Animation distances (adjust to your scene scale)")]
+    [SerializeField] private Vector3 tearOffset = new Vector3(0f, 3f, 0f);       // how much PackTop rises when torn
+    [SerializeField] private Vector3 packExitOffset = new Vector3(0f, -20f, 0f); // how much the pack drops when leaving the scene
 
-    [Header("Orden de dibujado del sobre (evita que el sobre tape a las cartas)")]
-    [SerializeField] private int packSortingOrder = -10; // el sobre siempre atras
+    [Header("Pack draw order (keeps the pack from covering the cards)")]
+    [SerializeField] private int packSortingOrder = -10; // pack always behind
 
     private void Awake()
     {
-        // Forzamos el orden de dibujado del sobre para que quede siempre detras de las cartas,
-        // sin importar la distancia real a camara en cada frame de la animacion.
+        // Force the pack's draw order so it always stays behind the cards, regardless of the
+        // actual distance to camera on any given animation frame.
         ForceSortingOrder(packTop, packSortingOrder);
         ForceSortingOrder(packBottom, packSortingOrder);
     }
@@ -71,7 +72,7 @@ public class CardPackOpener : MonoBehaviour
     private int nextCardIndex = 0;
     private Transform currentCard;
 
-    // Este mismo GameObject necesita un Collider (o Collider2D) para que esto se dispare.
+    // This same GameObject needs a Collider (or Collider2D) for this to fire.
     private void OnMouseDown()
     {
         if (currentState == State.WaitingPackClick)
@@ -86,20 +87,21 @@ public class CardPackOpener : MonoBehaviour
         StartCoroutine(RevealNextCardRoutine());
     }
 
-    // ---------------- PASO 1: abrir el sobre (todo en paralelo) ----------------
+    // ---------------- STEP 1: open the pack (all in parallel) ----------------
 
     private IEnumerator OpenPackRoutine()
     {
         currentState = State.Opening;
 
-        // Arranca vacio; se arma (y re-mezcla cuando se agota) a demanda en GetNextCardPrefab(),
-        // asi que no importa si cardCount es mayor a la cantidad de diseños cargados.
+        // Starts empty; it gets built (and reshuffled once exhausted) on demand in
+        // GetNextCardPrefab(), so it doesn't matter if cardCount is larger than the number of
+        // loaded designs.
         shuffledDeck = null;
         nextDeckIndex = 0;
         nextCardIndex = 0;
 
-        // Las tres animaciones arrancan juntas en el mismo instante: la tapa se rompe, el cuerpo
-        // del sobre baja, y la primera carta ya empieza a asomar.
+        // The three animations start together at the same instant: the flap tears, the pack
+        // body drops, and the first card already starts to peek out.
         Coroutine tearRoutine = StartCoroutine(TearTopRoutine());
         Coroutine exitRoutine = StartCoroutine(PackExitRoutine());
         Coroutine spawnRoutine = StartCoroutine(SpawnNextCardRoutine());
@@ -111,7 +113,7 @@ public class CardPackOpener : MonoBehaviour
         currentState = State.WaitingCardClick;
     }
 
-    // Rompe y desvanece solo la tapa de arriba.
+    // Tears and fades out only the top flap.
     private IEnumerator TearTopRoutine()
     {
         SpriteRenderer topRenderer = packTop.GetComponent<SpriteRenderer>();
@@ -138,7 +140,7 @@ public class CardPackOpener : MonoBehaviour
         }
     }
 
-    // Baja y desactiva el cuerpo del sobre (packContainer, que incluye a packBottom como hijo).
+    // Lowers and deactivates the pack body (packContainer, which includes packBottom as a child).
     private IEnumerator PackExitRoutine()
     {
         Vector3 packStart = packContainer.position;
@@ -154,11 +156,11 @@ public class CardPackOpener : MonoBehaviour
         packContainer.gameObject.SetActive(false);
     }
 
-    // ---------------- PASO 2: instanciar y animar UNA carta por vez ----------------
+    // ---------------- STEP 2: instantiate and animate ONE card at a time ----------------
 
-    // Instancia la siguiente carta del mazo mezclado, decide su rareza y area de holo, y la anima
-    // desde el sobre hasta pileRestPoint. Deja el collider deshabilitado hasta que termina de
-    // llegar, para que no se pueda clickear a mitad de camino.
+    // Instantiates the next card from the shuffled deck, decides its rarity and holo area, and
+    // animates it from the pack to pileRestPoint. Leaves the collider disabled until it
+    // finishes arriving, so it can't be clicked mid-transit.
     private IEnumerator SpawnNextCardRoutine()
     {
         if (nextCardIndex >= cardCount)
@@ -170,7 +172,6 @@ public class CardPackOpener : MonoBehaviour
         GameObject prefabToUse = GetNextCardPrefab();
         if (prefabToUse == null)
         {
-            Debug.LogWarning("No hay prefabs de carta asignados en Card Prefabs.");
             nextCardIndex++;
             yield break;
         }
@@ -180,38 +181,34 @@ public class CardPackOpener : MonoBehaviour
         currentCard = cardGO.transform;
         nextCardIndex++;
 
-        // La rareza y el area del holo se deciden aca, por slot, independientemente del diseño
-        // que salio, y se aplican sobre ESTA instancia via MaterialPropertyBlock. CardHoloRarity
-        // vive en un hijo del prefab (ej: CardFrontal), por eso GetComponentInChildren.
+        // Rarity and holo area are decided here, per slot, independently of the design that
+        // got picked, and applied to THIS instance via MaterialPropertyBlock. CardHoloRarity
+        // lives on a child of the prefab (e.g. CardFrontal), hence GetComponentInChildren.
         CardHoloRarity holoRarity = cardGO.GetComponentInChildren<CardHoloRarity>();
         if (holoRarity != null)
         {
-            bool esRara = Random.value < rareChance;
-            holoRarity.SetRarity(esRara);
+            bool isRare = Random.value < rareChance;
+            holoRarity.SetRarity(isRare);
 
-            // El area solo se nota si la carta es rara (si no es rara, HoloStrength = 0 y no se
-            // ve nada de todos modos), pero igual seteamos el valor para dejarlo consistente.
-            bool esCompleta = esRara && Random.value < fullHoloChance;
-            holoRarity.SetHoloArea(esCompleta);
+            // Area only matters visually if the card is rare (if not rare, HoloStrength = 0
+            // and nothing shows anyway), but it's still set to keep the material state consistent.
+            bool isFull = isRare && Random.value < fullHoloChance;
+            holoRarity.SetHoloArea(isFull);
 
-            // Mismo criterio: solo importan visualmente si la carta es rara, pero se setean
-            // siempre para mantener el material en un estado consistente.
-            bool esDorada = esRara && Random.value < goldChance;
-            holoRarity.SetGold(esDorada);
+            // Same criteria: only matters visually if the card is rare, but always set to keep
+            // the material in a consistent state.
+            bool isGold = isRare && Random.value < goldChance;
+            holoRarity.SetGold(isGold);
 
-            bool tieneMovimiento = !(esRara && Random.value < staticChance);
-            holoRarity.SetMovement(tieneMovimiento);
-        }
-        else
-        {
-            Debug.LogWarning($"{cardGO.name}: no tiene CardHoloRarity en su jerarquia, no se pudo asignar rareza.");
+            bool hasMovement = !(isRare && Random.value < staticChance);
+            holoRarity.SetMovement(hasMovement);
         }
 
-        // Enganchamos el click de esta carta puntual al metodo que pasa a la siguiente.
+        // Hook this specific card's click to the method that advances to the next one.
         CardClickRelay relay = cardGO.AddComponent<CardClickRelay>();
         relay.onClicked = OnFrontCardClicked;
 
-        // No interactuable hasta que termine de llegar a destino.
+        // Not interactable until it finishes arriving at its destination.
         SetCardInteractable(currentCard, false);
 
         Vector3 startPos = currentCard.position;
@@ -230,9 +227,9 @@ public class CardPackOpener : MonoBehaviour
         SetCardInteractable(currentCard, true);
     }
 
-    // Devuelve el siguiente diseño de carta del mazo mezclado, sin repetir hasta que el mazo se
-    // agote y se re-mezcle (Fisher-Yates). La rareza NO se decide aca: es independiente del diseño,
-    // se resuelve en SpawnNextCardRoutine con un roll aparte via CardHoloRarity.
+    // Returns the next card design from the shuffled deck, without repeating until the deck
+    // runs out and gets reshuffled (Fisher-Yates). Rarity is NOT decided here: it's independent
+    // of the design, resolved separately in SpawnNextCardRoutine via CardHoloRarity.
     private GameObject GetNextCardPrefab()
     {
         if (cardPrefabs == null || cardPrefabs.Length == 0) return null;
@@ -253,7 +250,7 @@ public class CardPackOpener : MonoBehaviour
         return result;
     }
 
-    // ---------------- PASO 3: pasar cartas una por una ----------------
+    // ---------------- STEP 3: pass cards one at a time ----------------
 
     private IEnumerator RevealNextCardRoutine()
     {
@@ -284,9 +281,9 @@ public class CardPackOpener : MonoBehaviour
             yield return null;
         }
 
-        // Destruimos la carta saliente (en vez de SetActive(false) para siempre): como se
-        // instancia una nueva por cada carta del sobre, dejarlas desactivadas iba acumulando
-        // objetos muertos en memoria sobre tras sobre.
+        // Destroy the outgoing card (instead of SetActive(false) forever): since a new one is
+        // instantiated for every card in the pack, leaving them disabled would keep piling up
+        // dead objects in memory pack after pack.
         Destroy(outgoing.gameObject);
         currentCard = null;
 
@@ -301,8 +298,8 @@ public class CardPackOpener : MonoBehaviour
         }
     }
 
-    // En 3D controlamos si una carta puede recibir click habilitando/deshabilitando su Collider,
-    // en vez de CanvasGroup.blocksRaycasts como haciamos en UI.
+    // In 3D we control whether a card can receive a click by enabling/disabling its Collider,
+    // instead of CanvasGroup.blocksRaycasts like in UI.
     private void SetCardInteractable(Transform card, bool interactable)
     {
         Collider col = card.GetComponent<Collider>();
@@ -312,7 +309,7 @@ public class CardPackOpener : MonoBehaviour
         if (col2D != null) col2D.enabled = interactable;
     }
 
-    // ---------------- Utilidad: reabrir el sobre (util para probar en el editor / demo) ----------------
+    // ---------------- Utility: reopen the pack (useful for testing in the editor / demo) ----------------
 
     public void ResetPack()
     {
@@ -330,7 +327,7 @@ public class CardPackOpener : MonoBehaviour
         currentState = State.WaitingPackClick;
 
         packContainer.gameObject.SetActive(true);
-        packContainer.position -= packExitOffset; // ojo: solo valido si no se movio nada mas mientras tanto
+        packContainer.position -= packExitOffset; // note: only valid if nothing else moved in the meantime
 
         SpriteRenderer topRenderer = packTop.GetComponent<SpriteRenderer>();
         if (topRenderer != null)
