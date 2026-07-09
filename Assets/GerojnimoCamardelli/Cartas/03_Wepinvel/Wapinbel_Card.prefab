@@ -180,6 +180,8 @@ MonoBehaviour:
   holoRenderer: {fileID: 6634671505437344471}
   holoStrengthProperty: _HoloStrength
   holoAreaProperty: _HoloArea
+  goldProperty: _IsGold
+  movementProperty: _HoloMovement
 --- !u!1 &533209554232383666
 GameObject:
   m_ObjectHideFlags: 0

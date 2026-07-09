@@ -26,6 +26,10 @@ public class CardPackOpener : MonoBehaviour
     [SerializeField] private float rareChance = 0.2f; // probabilidad de que UN slot puntual del sobre salga holografico/rara
     [Range(0f, 1f)]
     [SerializeField] private float fullHoloChance = 0.3f; // de las cartas que salen raras, cuantas usan la mascara "completa" en vez de "bordes"
+    [Range(0f, 1f)]
+    [SerializeField] private float goldChance = 0.25f; // de las cartas que salen raras, cuantas usan el ramp dorado en vez del arcoiris
+    [Range(0f, 1f)]
+    [SerializeField] private float staticChance = 0.2f; // de las cartas que salen raras, cuantas quedan SIN movimiento (holo estatico)
     [SerializeField] private Transform cardPileParent;
     [SerializeField] private Transform pileRestPoint; // punto donde "descansa" la carta frontal
     [SerializeField] private Transform sideExitPoint;
@@ -189,6 +193,14 @@ public class CardPackOpener : MonoBehaviour
             // ve nada de todos modos), pero igual seteamos el valor para dejarlo consistente.
             bool esCompleta = esRara && Random.value < fullHoloChance;
             holoRarity.SetHoloArea(esCompleta);
+
+            // Mismo criterio: solo importan visualmente si la carta es rara, pero se setean
+            // siempre para mantener el material en un estado consistente.
+            bool esDorada = esRara && Random.value < goldChance;
+            holoRarity.SetGold(esDorada);
+
+            bool tieneMovimiento = !(esRara && Random.value < staticChance);
+            holoRarity.SetMovement(tieneMovimiento);
         }
         else
         {

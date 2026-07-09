@@ -31,12 +31,28 @@ Material:
         m_Texture: {fileID: 2800000, guid: 729372a4cbc5bf64681e1119c35c97d3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Disenodecarta:
+        m_Texture: {fileID: 2800000, guid: 2c0cace3496a5ed4898e5ea5dda31f71, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _FlowMap:
-        m_Texture: {fileID: 2800000, guid: 0354fc66be93e4e4d9a723b3e055a2e7, type: 3}
+        m_Texture: {fileID: 2800000, guid: cab88dafd64becd4aaa9df51b3e256b3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _GoldRamp:
+        m_Texture: {fileID: 2800000, guid: 4dafdc292ead91247b2ddc2f342991a2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HoloRamp:
+        m_Texture: {fileID: 2800000, guid: 35e19bedfc6e89545ab4d1771dcf8241, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Ramp:
         m_Texture: {fileID: 2800000, guid: 35e19bedfc6e89545ab4d1771dcf8241, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Ramp1:
+        m_Texture: {fileID: 2800000, guid: 4dafdc292ead91247b2ddc2f342991a2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TextureSample0:
@@ -49,10 +65,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _ColorTime: -0.5
+    - _ColorTime: 0.5
     - _Cutoff: 0.5
-    - _HoloArea: 0
+    - _HoloArea: 1
     - _HoloStrength: 1
+    - _IsGold: 0
     - __dirty: 0
     m_Colors: []
   m_BuildTextureStacks: []

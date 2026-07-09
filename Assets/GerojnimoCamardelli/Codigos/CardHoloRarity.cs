@@ -11,6 +11,8 @@ using UnityEngine;
 /// Requisitos del lado del shader (Amplify):
 /// - Propiedad float "_HoloStrength" (Range 0-1): 0 = sin holo, 1 = holo completo.
 /// - Propiedad float "_HoloArea" (Range 0-1): 0 = mascara de bordes (BW_Map), 1 = carta completa.
+/// - Propiedad float "_IsGold" (Range 0-1): 0 = ramp arcoiris, 1 = ramp dorado.
+/// - Propiedad float "_HoloMovement" (Range 0-1): 0 = flow map congelado (holo estatico), 1 = animado.
 /// </summary>
 public class CardHoloRarity : MonoBehaviour
 {
@@ -23,10 +25,18 @@ public class CardHoloRarity : MonoBehaviour
     [Tooltip("Nombre EXACTO de la propiedad float en el shader (con el _ inicial) que controla el area del holo. 0 = solo bordes (BW_Map), 1 = carta completa.")]
     [SerializeField] private string holoAreaProperty = "_HoloArea";
 
+    [Tooltip("Nombre EXACTO de la propiedad float en el shader (con el _ inicial) que elige el ramp. 0 = arcoiris, 1 = dorado.")]
+    [SerializeField] private string goldProperty = "_IsGold";
+
+    [Tooltip("Nombre EXACTO de la propiedad float en el shader (con el _ inicial) que controla el movimiento del flow map. 0 = estatico, 1 = animado.")]
+    [SerializeField] private string movementProperty = "_HoloMovement";
+
     private MaterialPropertyBlock propBlock;
 
     public bool IsRare { get; private set; }
     public bool IsFullHolo { get; private set; }
+    public bool IsGold { get; private set; }
+    public bool HasMovement { get; private set; }
 
     private void Awake()
     {
@@ -97,5 +107,63 @@ public class CardHoloRarity : MonoBehaviour
         holoRenderer.SetPropertyBlock(propBlock);
 
         Debug.Log($"{name}: CardHoloRarity.SetHoloArea({isFullHolo}) -> {holoAreaProperty} = {(isFullHolo ? 1f : 0f)}");
+    }
+
+    /// <summary>
+    /// Elige entre las dos variantes de ramp: arcoiris (false) o dorado (true).
+    /// Independiente de SetRarity/SetHoloArea/SetMovement, se puede llamar en cualquier orden.
+    /// </summary>
+    public void SetGold(bool isGold)
+    {
+        IsGold = isGold;
+
+        if (holoRenderer == null)
+        {
+            Debug.LogWarning($"{name}: CardHoloRarity no encontro un Renderer para aplicar el shader holografico.");
+            return;
+        }
+
+        holoRenderer.GetPropertyBlock(propBlock);
+
+        Material mat = holoRenderer.sharedMaterial;
+        if (mat != null && !mat.HasProperty(goldProperty))
+        {
+            Debug.LogError($"{name}: el shader de '{mat.name}' no tiene una propiedad llamada '{goldProperty}'. " +
+                            "Revisa la Reference exacta del nodo _IsGold en Amplify Shader Editor (con el _ inicial incluido).");
+        }
+
+        propBlock.SetFloat(goldProperty, isGold ? 1f : 0f);
+        holoRenderer.SetPropertyBlock(propBlock);
+
+        Debug.Log($"{name}: CardHoloRarity.SetGold({isGold}) -> {goldProperty} = {(isGold ? 1f : 0f)}");
+    }
+
+    /// <summary>
+    /// Prende (true) o apaga (false) la animacion del flow map. En false el holo queda visible
+    /// pero estatico (UV sin distorsionar). Independiente de los demas metodos.
+    /// </summary>
+    public void SetMovement(bool hasMovement)
+    {
+        HasMovement = hasMovement;
+
+        if (holoRenderer == null)
+        {
+            Debug.LogWarning($"{name}: CardHoloRarity no encontro un Renderer para aplicar el shader holografico.");
+            return;
+        }
+
+        holoRenderer.GetPropertyBlock(propBlock);
+
+        Material mat = holoRenderer.sharedMaterial;
+        if (mat != null && !mat.HasProperty(movementProperty))
+        {
+            Debug.LogError($"{name}: el shader de '{mat.name}' no tiene una propiedad llamada '{movementProperty}'. " +
+                            "Revisa la Reference exacta del nodo _HoloMovement en Amplify Shader Editor (con el _ inicial incluido).");
+        }
+
+        propBlock.SetFloat(movementProperty, hasMovement ? 1f : 0f);
+        holoRenderer.SetPropertyBlock(propBlock);
+
+        Debug.Log($"{name}: CardHoloRarity.SetMovement({hasMovement}) -> {movementProperty} = {(hasMovement ? 1f : 0f)}");
     }
 }
