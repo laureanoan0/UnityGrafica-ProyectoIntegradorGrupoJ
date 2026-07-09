@@ -304,11 +304,35 @@ MonoBehaviour:
   - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
   - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
   - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
+  - {fileID: 1379305409004934, guid: fd6c964f1ef5f4b4aaae26d1fd67835f, type: 3}
   rareChance: 0.2
+  fullHoloChance: 0.3
   cardPileParent: {fileID: 2040757033}
   pileRestPoint: {fileID: 1508242431}
   sideExitPoint: {fileID: 34271965}
-  cardCount: 7
+  cardCount: 30
   tearDuration: 0.3
   packExitDuration: 1.2
   cardEnterDuration: 0.3

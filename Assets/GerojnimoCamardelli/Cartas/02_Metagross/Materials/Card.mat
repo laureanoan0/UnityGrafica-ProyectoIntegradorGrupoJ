@@ -31,8 +31,12 @@ Material:
         m_Texture: {fileID: 2800000, guid: 0246686bfc07a284bbf538f4ebbcb026, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _BW_Map_Full:
+        m_Texture: {fileID: 2800000, guid: 24b59528eb06fa044bc6aaf97a34f155, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _FlowMap:
-        m_Texture: {fileID: 2800000, guid: e77ac6f9827d61642a8c00e78756abc1, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0354fc66be93e4e4d9a723b3e055a2e7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Ramp:
@@ -49,9 +53,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _ColorTime: 1
+    - _ColorTime: -0.5
     - _Cutoff: 0.5
-    - _HoloStrength: 0
+    - _HoloArea: 0
+    - _HoloStrength: 1
     - __dirty: 0
     m_Colors: []
   m_BuildTextureStacks: []
