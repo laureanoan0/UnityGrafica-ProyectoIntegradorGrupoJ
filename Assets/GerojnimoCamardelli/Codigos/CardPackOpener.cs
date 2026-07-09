@@ -7,15 +7,11 @@ using UnityEngine;
 /// el fade de alpha del sobre (no CanvasGroup), y OnMouseDown para detectar clicks (no IPointerClickHandler).
 /// Pensado para objetos con SpriteRenderer + Collider (o Collider2D) en un espacio 3D visto por camara.
 ///
-/// CAMBIO CLAVE vs la version anterior: las cartas ya NO se instancian todas juntas y se apilan
-/// con offsets de Z. Ahora se instancia UNA sola carta por vez (la que esta "de frente"), y recien
-/// cuando esa termina su animacion de salida se instancia la siguiente.
-///
-/// Motivo: si las cartas usan un material con Stencil (tipico para efectos holo/mascara/recorte),
-/// tener varias cartas superpuestas en pantalla al mismo tiempo hace que el Stencil Buffer se
-/// pise entre ellas (el resultado depende de que objeto se dibujo primero, algo que un SpriteRenderer
-/// no te deja controlar con precision). Con una sola carta activa en render por vez, ese problema
-/// desaparece por completo.
+/// Una sola carta se instancia y renderiza por vez (evita conflictos de Stencil Buffer entre
+/// materiales holograficos superpuestos). La rareza (holo si/no) y el area del holo (bordes/completa)
+/// se deciden por codigo via CardHoloRarity + MaterialPropertyBlock, no por que prefab se elige:
+/// todos los diseños de carta comparten un unico pool (cardPrefabs), y cada slot del sobre tira
+/// su propio roll de rareza y de area, independiente del diseño que le toco.
 /// </summary>
 public class CardPackOpener : MonoBehaviour
 {
@@ -28,6 +24,8 @@ public class CardPackOpener : MonoBehaviour
     [SerializeField] private GameObject[] cardPrefabs; // un prefab COMPLETO por cada diseño de carta (la rareza ya NO depende del prefab)
     [Range(0f, 1f)]
     [SerializeField] private float rareChance = 0.2f; // probabilidad de que UN slot puntual del sobre salga holografico/rara
+    [Range(0f, 1f)]
+    [SerializeField] private float fullHoloChance = 0.3f; // de las cartas que salen raras, cuantas usan la mascara "completa" en vez de "bordes"
     [SerializeField] private Transform cardPileParent;
     [SerializeField] private Transform pileRestPoint; // punto donde "descansa" la carta frontal
     [SerializeField] private Transform sideExitPoint;
@@ -66,7 +64,6 @@ public class CardPackOpener : MonoBehaviour
 
     private List<GameObject> shuffledDeck;
     private int nextDeckIndex = 0;
-
     private int nextCardIndex = 0;
     private Transform currentCard;
 
@@ -155,9 +152,9 @@ public class CardPackOpener : MonoBehaviour
 
     // ---------------- PASO 2: instanciar y animar UNA carta por vez ----------------
 
-    // Instancia la siguiente carta del mazo mezclado y la anima desde el sobre hasta pileRestPoint.
-    // Deja el collider deshabilitado hasta que termina de llegar, para que no se pueda clickear
-    // a mitad de camino.
+    // Instancia la siguiente carta del mazo mezclado, decide su rareza y area de holo, y la anima
+    // desde el sobre hasta pileRestPoint. Deja el collider deshabilitado hasta que termina de
+    // llegar, para que no se pueda clickear a mitad de camino.
     private IEnumerator SpawnNextCardRoutine()
     {
         if (nextCardIndex >= cardCount)
@@ -179,14 +176,19 @@ public class CardPackOpener : MonoBehaviour
         currentCard = cardGO.transform;
         nextCardIndex++;
 
-        // La rareza ya no depende de que prefab se eligio: se decide aca, por slot, y se aplica
-        // sobre ESTA instancia via MaterialPropertyBlock (CardHoloRarity vive en un hijo del
-        // prefab, por eso GetComponentInChildren en vez de GetComponent).
+        // La rareza y el area del holo se deciden aca, por slot, independientemente del diseño
+        // que salio, y se aplican sobre ESTA instancia via MaterialPropertyBlock. CardHoloRarity
+        // vive en un hijo del prefab (ej: CardFrontal), por eso GetComponentInChildren.
         CardHoloRarity holoRarity = cardGO.GetComponentInChildren<CardHoloRarity>();
         if (holoRarity != null)
         {
             bool esRara = Random.value < rareChance;
             holoRarity.SetRarity(esRara);
+
+            // El area solo se nota si la carta es rara (si no es rara, HoloStrength = 0 y no se
+            // ve nada de todos modos), pero igual seteamos el valor para dejarlo consistente.
+            bool esCompleta = esRara && Random.value < fullHoloChance;
+            holoRarity.SetHoloArea(esCompleta);
         }
         else
         {
@@ -202,7 +204,6 @@ public class CardPackOpener : MonoBehaviour
 
         Vector3 startPos = currentCard.position;
         Vector3 endPos = pileRestPoint.position;
-        float startRot = currentCard.eulerAngles.z;
 
         float t = 0f;
         while (t < cardEnterDuration)
@@ -271,9 +272,9 @@ public class CardPackOpener : MonoBehaviour
             yield return null;
         }
 
-        // A diferencia de la version anterior (SetActive(false) para siempre), ahora destruimos
-        // la carta saliente: como se instancia una nueva por cada carta del sobre, dejarlas
-        // desactivadas para siempre iba acumulando objetos muertos en memoria sobre en sobre.
+        // Destruimos la carta saliente (en vez de SetActive(false) para siempre): como se
+        // instancia una nueva por cada carta del sobre, dejarlas desactivadas iba acumulando
+        // objetos muertos en memoria sobre tras sobre.
         Destroy(outgoing.gameObject);
         currentCard = null;
 
@@ -312,6 +313,8 @@ public class CardPackOpener : MonoBehaviour
         }
 
         nextCardIndex = 0;
+        shuffledDeck = null;
+        nextDeckIndex = 0;
         currentState = State.WaitingPackClick;
 
         packContainer.gameObject.SetActive(true);
