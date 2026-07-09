@@ -12,14 +12,29 @@ public class WeatherController : MonoBehaviour
 
     private float maxEmission = 10000f;
 
+    [Header("Fog Plane")]
+    public Material fogPlaneMaterial;
+
+   
+    private float maxFogDensity = 0.6f;
+
+    [Header("Fog Colors")]
+    public Color fogPlaneColor = Color.white;
+    public Color postProcessFogColor = Color.gray;
+
+    [Header("Post Process")]
+    public PostProcessScript postProcess;
+
+   
+    private float maxPostProcessFog = 5f;
+
     void Update()
     {
-        var emission = rain.emission;
+        // ---------------- LLUVIA ----------------
 
-       
+        var emission = rain.emission;
         emission.rateOverTime = rainIntensity * maxEmission;
 
-      
         if (rainIntensity <= 0.001f)
         {
             if (rain.isPlaying)
@@ -29,6 +44,28 @@ public class WeatherController : MonoBehaviour
         {
             if (!rain.isPlaying)
                 rain.Play();
+        }
+
+        // ---------------- NIEBLA DEL PLANO ----------------
+
+        if (fogPlaneMaterial != null)
+        {
+            fogPlaneMaterial.SetFloat("_FogDensity",
+                rainIntensity * maxFogDensity);
+
+            fogPlaneMaterial.SetColor("_FogPlaneColor",
+                fogPlaneColor);
+        }
+
+        // ---------------- NIEBLA POST PROCESS ----------------
+
+        if (postProcess != null)
+        {
+            postProcess.SetFogIntensity(
+                rainIntensity * maxPostProcessFog);
+
+            postProcess.SetFogColor(
+                postProcessFogColor);
         }
     }
 }

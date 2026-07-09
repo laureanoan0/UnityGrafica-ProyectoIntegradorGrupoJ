@@ -17,4 +17,18 @@ public class PostProcessScript : MonoBehaviour
     {
         Graphics.Blit(source, destination, postProcessMaterial);
     }
+    public void SetFogIntensity(float value)
+    {
+        if (postProcessMaterial != null)
+        {
+            postProcessMaterial.SetFloat("_FogIntensity", value);
+        }
+    }
+    public void SetFogColor(Color color)
+    {
+        if (postProcessMaterial != null)
+        {
+            postProcessMaterial.SetColor("_FogColor", color);
+        }
+    }
 }

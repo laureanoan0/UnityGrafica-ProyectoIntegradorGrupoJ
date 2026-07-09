@@ -9928,6 +9928,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rain: {fileID: 91977011}
   rainIntensity: 0
+  maxEmission: 10000
+  fogPlaneMaterial: {fileID: 2100000, guid: 2754643879330bc4aae5732b1ac798dd, type: 2}
+  maxFogDensity: 0.6
+  postProcess: {fileID: 831457530}
+  maxPostProcessFog: 5
 --- !u!4 &649275781
 Transform:
   m_ObjectHideFlags: 0

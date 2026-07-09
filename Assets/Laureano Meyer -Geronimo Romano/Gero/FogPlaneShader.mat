@@ -34,10 +34,12 @@ Material:
     m_Ints: []
     m_Floats:
     - _ChromaticAberration: 0.1
+    - _EdgeLength: 50
     - _Float0: 0
-    - _FogDensity: 0.5
+    - _FogDensity: 0.6
     - __dirty: 0
     m_Colors:
-    - _Color0: {r: 0, g: 0, b: 0, a: 0}
+    - _Color0: {r: 0.754717, g: 0.754717, b: 0.754717, a: 0}
     - _FogColor: {r: 1, g: 1, b: 1, a: 0}
+    - _FogPlaneColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
