@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Card_Front
+  m_Name: Card_OLO
   m_Shader: {fileID: 4800000, guid: cfad15f604de88f4d9858c952c45751d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -27,8 +27,12 @@ Material:
         m_Texture: {fileID: 2800000, guid: 5bdfeb4f52cfc8b4bb28b162fbb50d3c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _BW_Map_Full:
+        m_Texture: {fileID: 2800000, guid: 729372a4cbc5bf64681e1119c35c97d3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _FlowMap:
-        m_Texture: {fileID: 2800000, guid: e77ac6f9827d61642a8c00e78756abc1, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0354fc66be93e4e4d9a723b3e055a2e7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Ramp:
@@ -45,8 +49,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _ColorTime: 1
+    - HoloStrength: 0
+    - _ColorTime: -0.5
     - _Cutoff: 0.5
+    - _HoloArea: 1
+    - _HoloStrangeth: 0
+    - _HoloStrength: 1
+    - _HoloStrength1: 1
     - __dirty: 0
     m_Colors: []
   m_BuildTextureStacks: []

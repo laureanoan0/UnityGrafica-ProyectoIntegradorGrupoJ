@@ -7,15 +7,11 @@ using UnityEngine;
 /// el fade de alpha del sobre (no CanvasGroup), y OnMouseDown para detectar clicks (no IPointerClickHandler).
 /// Pensado para objetos con SpriteRenderer + Collider (o Collider2D) en un espacio 3D visto por camara.
 ///
-/// CAMBIO CLAVE vs la version anterior: las cartas ya NO se instancian todas juntas y se apilan
-/// con offsets de Z. Ahora se instancia UNA sola carta por vez (la que esta "de frente"), y recien
-/// cuando esa termina su animacion de salida se instancia la siguiente.
-///
-/// Motivo: si las cartas usan un material con Stencil (tipico para efectos holo/mascara/recorte),
-/// tener varias cartas superpuestas en pantalla al mismo tiempo hace que el Stencil Buffer se
-/// pise entre ellas (el resultado depende de que objeto se dibujo primero, algo que un SpriteRenderer
-/// no te deja controlar con precision). Con una sola carta activa en render por vez, ese problema
-/// desaparece por completo.
+/// Una sola carta se instancia y renderiza por vez (evita conflictos de Stencil Buffer entre
+/// materiales holograficos superpuestos). La rareza (holo si/no) y el area del holo (bordes/completa)
+/// se deciden por codigo via CardHoloRarity + MaterialPropertyBlock, no por que prefab se elige:
+/// todos los diseños de carta comparten un unico pool (cardPrefabs), y cada slot del sobre tira
+/// su propio roll de rareza y de area, independiente del diseño que le toco.
 /// </summary>
 public class CardPackOpener : MonoBehaviour
 {
@@ -25,7 +21,11 @@ public class CardPackOpener : MonoBehaviour
     [SerializeField] private Transform packContainer; // padre de PackTop y PackBottom (puede ser este mismo objeto)
 
     [Header("Cartas")]
-    [SerializeField] private GameObject[] cardPrefabs; // un prefab COMPLETO por cada diseño de carta (frente + fondo + objeto 3D ya armados)
+    [SerializeField] private GameObject[] cardPrefabs; // un prefab COMPLETO por cada diseño de carta (la rareza ya NO depende del prefab)
+    [Range(0f, 1f)]
+    [SerializeField] private float rareChance = 0.2f; // probabilidad de que UN slot puntual del sobre salga holografico/rara
+    [Range(0f, 1f)]
+    [SerializeField] private float fullHoloChance = 0.3f; // de las cartas que salen raras, cuantas usan la mascara "completa" en vez de "bordes"
     [SerializeField] private Transform cardPileParent;
     [SerializeField] private Transform pileRestPoint; // punto donde "descansa" la carta frontal
     [SerializeField] private Transform sideExitPoint;
@@ -63,6 +63,7 @@ public class CardPackOpener : MonoBehaviour
     private State currentState = State.WaitingPackClick;
 
     private List<GameObject> shuffledDeck;
+    private int nextDeckIndex = 0;
     private int nextCardIndex = 0;
     private Transform currentCard;
 
@@ -87,7 +88,10 @@ public class CardPackOpener : MonoBehaviour
     {
         currentState = State.Opening;
 
-        shuffledDeck = BuildShuffledPrefabList();
+        // Arranca vacio; se arma (y re-mezcla cuando se agota) a demanda en GetNextCardPrefab(),
+        // asi que no importa si cardCount es mayor a la cantidad de diseños cargados.
+        shuffledDeck = null;
+        nextDeckIndex = 0;
         nextCardIndex = 0;
 
         // Las tres animaciones arrancan juntas en el mismo instante: la tapa se rompe, el cuerpo
@@ -148,21 +152,21 @@ public class CardPackOpener : MonoBehaviour
 
     // ---------------- PASO 2: instanciar y animar UNA carta por vez ----------------
 
-    // Instancia la siguiente carta del mazo mezclado y la anima desde el sobre hasta pileRestPoint.
-    // Deja el collider deshabilitado hasta que termina de llegar, para que no se pueda clickear
-    // a mitad de camino.
+    // Instancia la siguiente carta del mazo mezclado, decide su rareza y area de holo, y la anima
+    // desde el sobre hasta pileRestPoint. Deja el collider deshabilitado hasta que termina de
+    // llegar, para que no se pueda clickear a mitad de camino.
     private IEnumerator SpawnNextCardRoutine()
     {
-        if (nextCardIndex >= cardCount || shuffledDeck.Count == 0)
+        if (nextCardIndex >= cardCount)
         {
             currentState = State.Done;
             yield break;
         }
 
-        GameObject prefabToUse = shuffledDeck[nextCardIndex % shuffledDeck.Count];
+        GameObject prefabToUse = GetNextCardPrefab();
         if (prefabToUse == null)
         {
-            Debug.LogWarning("No hay prefab de carta asignado en esta posicion de Card Prefabs.");
+            Debug.LogWarning("No hay prefabs de carta asignados en Card Prefabs.");
             nextCardIndex++;
             yield break;
         }
@@ -171,6 +175,25 @@ public class CardPackOpener : MonoBehaviour
         cardGO.SetActive(true);
         currentCard = cardGO.transform;
         nextCardIndex++;
+
+        // La rareza y el area del holo se deciden aca, por slot, independientemente del diseño
+        // que salio, y se aplican sobre ESTA instancia via MaterialPropertyBlock. CardHoloRarity
+        // vive en un hijo del prefab (ej: CardFrontal), por eso GetComponentInChildren.
+        CardHoloRarity holoRarity = cardGO.GetComponentInChildren<CardHoloRarity>();
+        if (holoRarity != null)
+        {
+            bool esRara = Random.value < rareChance;
+            holoRarity.SetRarity(esRara);
+
+            // El area solo se nota si la carta es rara (si no es rara, HoloStrength = 0 y no se
+            // ve nada de todos modos), pero igual seteamos el valor para dejarlo consistente.
+            bool esCompleta = esRara && Random.value < fullHoloChance;
+            holoRarity.SetHoloArea(esCompleta);
+        }
+        else
+        {
+            Debug.LogWarning($"{cardGO.name}: no tiene CardHoloRarity en su jerarquia, no se pudo asignar rareza.");
+        }
 
         // Enganchamos el click de esta carta puntual al metodo que pasa a la siguiente.
         CardClickRelay relay = cardGO.AddComponent<CardClickRelay>();
@@ -181,7 +204,6 @@ public class CardPackOpener : MonoBehaviour
 
         Vector3 startPos = currentCard.position;
         Vector3 endPos = pileRestPoint.position;
-        float startRot = currentCard.eulerAngles.z;
 
         float t = 0f;
         while (t < cardEnterDuration)
@@ -196,19 +218,27 @@ public class CardPackOpener : MonoBehaviour
         SetCardInteractable(currentCard, true);
     }
 
-    // Devuelve una copia mezclada de cardPrefabs (Fisher-Yates), para no repetir diseños
-    // mientras el mazo alcance.
-    private List<GameObject> BuildShuffledPrefabList()
+    // Devuelve el siguiente diseño de carta del mazo mezclado, sin repetir hasta que el mazo se
+    // agote y se re-mezcle (Fisher-Yates). La rareza NO se decide aca: es independiente del diseño,
+    // se resuelve en SpawnNextCardRoutine con un roll aparte via CardHoloRarity.
+    private GameObject GetNextCardPrefab()
     {
-        List<GameObject> deck = new List<GameObject>(cardPrefabs);
-        for (int i = deck.Count - 1; i > 0; i--)
+        if (cardPrefabs == null || cardPrefabs.Length == 0) return null;
+
+        if (shuffledDeck == null || nextDeckIndex >= shuffledDeck.Count)
         {
-            int j = Random.Range(0, i + 1);
-            GameObject temp = deck[i];
-            deck[i] = deck[j];
-            deck[j] = temp;
+            shuffledDeck = new List<GameObject>(cardPrefabs);
+            for (int i = shuffledDeck.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                (shuffledDeck[i], shuffledDeck[j]) = (shuffledDeck[j], shuffledDeck[i]);
+            }
+            nextDeckIndex = 0;
         }
-        return deck;
+
+        GameObject result = shuffledDeck[nextDeckIndex];
+        nextDeckIndex++;
+        return result;
     }
 
     // ---------------- PASO 3: pasar cartas una por una ----------------
@@ -242,9 +272,9 @@ public class CardPackOpener : MonoBehaviour
             yield return null;
         }
 
-        // A diferencia de la version anterior (SetActive(false) para siempre), ahora destruimos
-        // la carta saliente: como se instancia una nueva por cada carta del sobre, dejarlas
-        // desactivadas para siempre iba acumulando objetos muertos en memoria sobre en sobre.
+        // Destruimos la carta saliente (en vez de SetActive(false) para siempre): como se
+        // instancia una nueva por cada carta del sobre, dejarlas desactivadas iba acumulando
+        // objetos muertos en memoria sobre tras sobre.
         Destroy(outgoing.gameObject);
         currentCard = null;
 
@@ -283,6 +313,8 @@ public class CardPackOpener : MonoBehaviour
         }
 
         nextCardIndex = 0;
+        shuffledDeck = null;
+        nextDeckIndex = 0;
         currentState = State.WaitingPackClick;
 
         packContainer.gameObject.SetActive(true);
