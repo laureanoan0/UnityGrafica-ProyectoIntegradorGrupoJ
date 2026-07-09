@@ -3,7 +3,9 @@ guid: d1485c427d5c43c4f96483673cd7423e
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - rain: {instanceID: 0}
+  - fogMaterial: {fileID: 2100000, guid: 2754643879330bc4aae5732b1ac798dd, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

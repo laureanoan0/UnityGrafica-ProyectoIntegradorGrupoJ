@@ -119,7 +119,7 @@ Shader "FogShader"
 }
 /*ASEBEGIN
 Version=18900
-177;73;581;634;1580.309;195.0615;1.6;True;False
+101;81;756;674;1670.849;117.6446;1.124678;True;False
 Node;AmplifyShaderEditor.SimpleTimeNode;39;-1790.088,520.1882;Inherit;False;1;0;FLOAT;1;False;1;FLOAT;0
 Node;AmplifyShaderEditor.SinOpNode;38;-1614.099,520.1882;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.ScreenDepthNode;16;-1646.722,334.7302;Inherit;False;1;True;1;0;FLOAT4;0,0,0,0;False;1;FLOAT;0
@@ -146,4 +146,4 @@ WireConnection;29;1;32;0
 WireConnection;29;2;34;0
 WireConnection;0;0;29;0
 ASEEND*/
-//CHKSM=CC00AF73EC6A90E32CD251E0C37E96A066CBADB0
+//CHKSM=88054E29CAC226E3BBC3E49B23847CEE7C365283

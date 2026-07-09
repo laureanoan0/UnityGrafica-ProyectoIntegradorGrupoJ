@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,10 +16,10 @@ public class WeatherController : MonoBehaviour
     {
         var emission = rain.emission;
 
-        // Cambia la cantidad de gotas según la intensidad
+       
         emission.rateOverTime = rainIntensity * maxEmission;
 
-        // Si no hay lluvia, dejamos de emitir
+      
         if (rainIntensity <= 0.001f)
         {
             if (rain.isPlaying)
