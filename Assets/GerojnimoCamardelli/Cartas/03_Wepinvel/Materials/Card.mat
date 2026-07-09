@@ -65,11 +65,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _ColorTime: 0.5
+    - _ColorSpeed: 0.5
+    - _ColorTime: 0
     - _Cutoff: 0.5
     - _HoloArea: 0
+    - _HoloMovement: 0
     - _HoloStrength: 1
     - _IsGold: 0
+    - _MovementSpeed: 1
     - __dirty: 0
     m_Colors: []
   m_BuildTextureStacks: []

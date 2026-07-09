@@ -28,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BW_Map_Full:
-        m_Texture: {fileID: 2800000, guid: 729372a4cbc5bf64681e1119c35c97d3, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Disenodecarta:
@@ -65,11 +65,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _ColorSpeed: 0.5
     - _ColorTime: 0.5
     - _Cutoff: 0.5
-    - _HoloArea: 1
+    - _HoloArea: 0
+    - _HoloMovement: 0
     - _HoloStrength: 1
-    - _IsGold: 0
+    - _IsGold: 1
     - __dirty: 0
     m_Colors: []
   m_BuildTextureStacks: []

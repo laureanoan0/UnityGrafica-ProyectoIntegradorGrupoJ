@@ -66,9 +66,11 @@ Material:
     m_Ints: []
     m_Floats:
     - HoloStrength: 0
+    - _ColorSpeed: 0.5
     - _ColorTime: 0.5
     - _Cutoff: 0.5
     - _HoloArea: 0
+    - _HoloMovement: 0
     - _HoloStrangeth: 0
     - _HoloStrength: 1
     - _HoloStrength1: 1

@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Card_Front
+  m_Shader: {fileID: 4800000, guid: cfad15f604de88f4d9858c952c45751d, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BW_Map:
+        m_Texture: {fileID: 2800000, guid: 48c626ab3c333504dadefb818d41d052, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BW_Map_Full:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Disenodecarta:
+        m_Texture: {fileID: 2800000, guid: c342fb25e42801d4abf9b639dd08058e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FlowMap:
+        m_Texture: {fileID: 2800000, guid: cab88dafd64becd4aaa9df51b3e256b3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _GoldRamp:
+        m_Texture: {fileID: 2800000, guid: 4dafdc292ead91247b2ddc2f342991a2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HoloRamp:
+        m_Texture: {fileID: 2800000, guid: 35e19bedfc6e89545ab4d1771dcf8241, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ColorSpeed: 1
+    - _Cutoff: 0.5
+    - _HoloArea: 1
+    - _HoloMovement: 0.5
+    - _HoloStrength: 1
+    - _IsGold: 1
+    - __dirty: 0
+    m_Colors: []
+  m_BuildTextureStacks: []

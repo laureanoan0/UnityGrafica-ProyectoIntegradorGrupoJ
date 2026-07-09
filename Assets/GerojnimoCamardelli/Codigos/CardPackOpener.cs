@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// 3D version of the pack opener: regular Transform (not RectTransform), SpriteRenderer for
@@ -67,6 +69,17 @@ public class CardPackOpener : MonoBehaviour
     private enum State { WaitingPackClick, Opening, WaitingCardClick, RevealingNext, Done }
     private State currentState = State.WaitingPackClick;
 
+    // Fired once this pack has revealed every card it had (cardCount reached). Used by
+    // PackQueueController to know when to advance the row and promote the next pack.
+    public event Action OnPackFinished;
+
+    // Only the pack in the active/center slot should respond to clicks. Defaults to true so a
+    // single standalone pack (no PackQueueController involved) keeps working exactly as before.
+    // A queue manager sets this to false on every pack sitting in the waiting row.
+    private bool isActive = true;
+
+    public void SetActive(bool active) => isActive = active;
+
     private List<GameObject> shuffledDeck;
     private int nextDeckIndex = 0;
     private int nextCardIndex = 0;
@@ -75,6 +88,7 @@ public class CardPackOpener : MonoBehaviour
     // This same GameObject needs a Collider (or Collider2D) for this to fire.
     private void OnMouseDown()
     {
+        if (!isActive) return;
         if (currentState == State.WaitingPackClick)
         {
             StartCoroutine(OpenPackRoutine());
@@ -166,6 +180,7 @@ public class CardPackOpener : MonoBehaviour
         if (nextCardIndex >= cardCount)
         {
             currentState = State.Done;
+            OnPackFinished?.Invoke();
             yield break;
         }
 
@@ -295,6 +310,7 @@ public class CardPackOpener : MonoBehaviour
         else
         {
             currentState = State.Done;
+            OnPackFinished?.Invoke();
         }
     }
 
