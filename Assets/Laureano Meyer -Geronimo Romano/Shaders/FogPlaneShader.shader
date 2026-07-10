@@ -131,7 +131,8 @@ Shader "FogPlaneShader"
 }
 /*ASEBEGIN
 Version=18900
-199;81;576;613;-385.0863;439.7794;1;True;False
+285;73;1346;627;421.4374;548.6915;1.483828;True;False
+Node;AmplifyShaderEditor.CommentaryNode;9;-7.483866,-349.1946;Inherit;False;1646.359;771.7788;Panner mueve la textura en X e Y / FogDensity cambia la densidad de la niebla(plano) / FogColor cambia el color;8;0;7;8;6;5;1;3;2;;1,1,1,1;0;0
 Node;AmplifyShaderEditor.TextureCoordinatesNode;2;65.69604,-34.50563;Inherit;False;0;1;2;3;2;SAMPLER2D;;False;0;FLOAT2;1,1;False;1;FLOAT2;0,0;False;5;FLOAT2;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.PannerNode;3;278.5662,-29.10678;Inherit;False;3;0;FLOAT2;0,0;False;2;FLOAT2;0.01,0.005;False;1;FLOAT;1;False;1;FLOAT2;0
 Node;AmplifyShaderEditor.SamplerNode;1;448.4071,-58.18327;Inherit;True;Property;_TextureSample0;Texture Sample 0;0;0;Create;True;0;0;0;False;0;False;-1;4fb2154fadffd954ca777b9f0526d3d8;4fb2154fadffd954ca777b9f0526d3d8;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
@@ -149,4 +150,4 @@ WireConnection;7;1;6;0
 WireConnection;0;2;7;0
 WireConnection;0;9;6;0
 ASEEND*/
-//CHKSM=D1A4CA2598C10AFF63D50914612553FFAB54CECC
+//CHKSM=A0B189099D54DD121A99DC34700425A50854DA48
