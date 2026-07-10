@@ -13,11 +13,9 @@ public class WeatherController : MonoBehaviour
     public float fogIntensity = 1f;
     public Material fogPlaneMaterial;
     private float maxFogDensity = 0.6f;
-
     [Header("Fog Plane Speed")]
     [Range(0, 1)]
     public float fogSpeed = 0.5f;
-
     [Header("Fog Colors")]
     public Color fogPlaneColor = Color.white;
     public Color postProcessFogColor = Color.gray;
@@ -29,8 +27,22 @@ public class WeatherController : MonoBehaviour
     public SnowPostProcess snowPostProcess;
     void Update()
     {
+        // ---------------- INPUTS ----------------
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            rainIntensity = rainIntensity >= 0.5f ? 0f : 1f;
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            fogIntensity = fogIntensity >= 0.5f ? 0f : 1f;
+        }
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            snowEnabled = !snowEnabled;
+        }
+
         // ---------------- LLUVIA ----------------
-        if(rain != null)
+        if (rain != null)
         {
             var emission = rain.emission;
             emission.rateOverTime = rainIntensity * maxEmission;
