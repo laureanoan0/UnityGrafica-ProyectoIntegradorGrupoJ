@@ -37,7 +37,7 @@ Material:
     - _EdgeLength: 50
     - _Float0: 0
     - _FogDensity: 0.6
-    - _Speed: 0.165
+    - _Speed: 0.5
     - __dirty: 0
     m_Colors:
     - _Color0: {r: 0.754717, g: 0.754717, b: 0.754717, a: 0}
