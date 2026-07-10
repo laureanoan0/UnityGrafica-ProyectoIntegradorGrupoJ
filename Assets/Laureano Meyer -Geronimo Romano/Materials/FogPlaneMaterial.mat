@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FogPlaneShader
+  m_Name: FogPlaneMaterial
   m_Shader: {fileID: 4800000, guid: c610a8f570665294da0ab76f9fb3fb5b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -37,6 +37,7 @@ Material:
     - _EdgeLength: 50
     - _Float0: 0
     - _FogDensity: 0.6
+    - _Speed: 0.165
     - __dirty: 0
     m_Colors:
     - _Color0: {r: 0.754717, g: 0.754717, b: 0.754717, a: 0}
