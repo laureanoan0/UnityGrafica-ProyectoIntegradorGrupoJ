@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 238248902534542753}
   - component: {fileID: 7601624446049554043}
   m_Layer: 0
-  m_Name: Venonat_Card
+  m_Name: Voltorb_Card
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

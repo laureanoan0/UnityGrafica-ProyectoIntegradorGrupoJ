@@ -73,14 +73,14 @@ MonoBehaviour:
   - {fileID: 1379305409004934, guid: bdc7e17bf9322d3479d8990f0b0ab3a1, type: 3}
   - {fileID: 1379305409004934, guid: 84bd089f3e232fb4b9ee040ca79cebcd, type: 3}
   - {fileID: 1379305409004934, guid: 840062721f7976447a83ed72c225e8db, type: 3}
-  rareChance: 0.658
-  fullHoloChance: 0.62
-  goldChance: 0.709
-  staticChance: 0.506
+  rareChance: 0.5
+  fullHoloChance: 0.5
+  goldChance: 0.5
+  staticChance: 0.5
   cardPileParent: {fileID: 71711297805716723}
   pileRestPoint: {fileID: 8752286569393173898}
   sideExitPoint: {fileID: 5942618229657215595}
-  cardCount: 7
+  cardCount: 4
   tearDuration: 0.3
   packExitDuration: 1.2
   cardEnterDuration: 0.3
