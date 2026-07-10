@@ -45,5 +45,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneNames:
-  - PI_07
-  - PI_04
+  - Weather
+  - Cards
