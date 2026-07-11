@@ -119,7 +119,7 @@ Shader "FogShader"
 }
 /*ASEBEGIN
 Version=18900
-285;73;1346;627;1602.066;595.8652;1.678378;True;False
+229;73;1235;598;2087.118;526.2128;1.678378;True;False
 Node;AmplifyShaderEditor.CommentaryNode;42;-1771.803,-57.8715;Inherit;False;816.3359;415.2907;Obtiene la profundidad de la escena y la hace oscilar;6;35;40;41;16;38;39;;1,1,1,1;0;0
 Node;AmplifyShaderEditor.SimpleTimeNode;39;-1760.205,123.434;Inherit;False;1;0;FLOAT;1;False;1;FLOAT;0
 Node;AmplifyShaderEditor.SinOpNode;38;-1584.216,123.434;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
@@ -148,4 +148,4 @@ WireConnection;29;1;32;0
 WireConnection;29;2;34;0
 WireConnection;0;0;29;0
 ASEEND*/
-//CHKSM=9701A9DAB6B76A990ACD18D68AE3E27E69EDE189
+//CHKSM=DE28B28EE7829BD4E3A081C6B5E453C986206ABE
